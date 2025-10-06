@@ -52,4 +52,5 @@ ENV HOSTNAME "0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
+# For Next.js standalone builds, server.js is in the root directory
 CMD ["node", "server.js"]
