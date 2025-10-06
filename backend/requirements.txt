@@ -21,13 +21,13 @@ pydantic-settings==2.1.0
 httpx==0.25.2
 
 # AI & ML Frameworks
-langchain==0.1.0
-langchain-openai==0.0.8
-llama-index==0.9.0
+langchain>=0.1.0
+langchain-openai>=0.0.8
+llama-index>=0.9.0
 # mcp==1.16.0  # Temporarily commented out - causing CI issues
 
 # Vector Database
-chromadb==0.4.18
+chromadb>=0.4.18
 sentence-transformers==2.2.2
 
 # Environment & Config
