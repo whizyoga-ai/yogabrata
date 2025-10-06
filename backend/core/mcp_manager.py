@@ -17,6 +17,11 @@ try:
 except ImportError:
     MCP_AVAILABLE = False
     logging.warning("MCP library not available. Install with: pip install mcp")
+    # Create dummy classes to prevent import errors
+    class ClientSession:
+        pass
+    def stdio_client(*args, **kwargs):
+        return None
 
 import httpx
 from bs4 import BeautifulSoup

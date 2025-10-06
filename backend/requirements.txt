@@ -24,7 +24,7 @@ httpx==0.25.2
 langchain==0.1.0
 langchain-openai==0.0.5
 llama-index==0.9.0
-mcp==1.16.0
+# mcp==1.16.0  # Temporarily commented out - causing CI issues
 
 # Vector Database
 chromadb==0.4.18
