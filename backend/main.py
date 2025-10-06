@@ -16,8 +16,11 @@ import uvicorn
 
 # Import our custom modules
 from core.mcp_manager import mcp_manager
+from core.database import init_db
 from agents.base_agent import BaseAgent, TaskContext, AgentResponse
 from agents.business_formation_agent import BusinessFormationAgent
+from agents.content_strategy_agent import ContentStrategyAgent
+from agents.legal_compliance_agent import LegalComplianceAgent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,6 +35,13 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting Yogabrata AI Platform...")
 
+    # Initialize Database
+    try:
+        init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+
     # Initialize MCP Manager
     try:
         connection_results = await mcp_manager.connect_all()
@@ -41,12 +51,26 @@ async def lifespan(app: FastAPI):
 
     # Initialize AI Agents
     try:
+        # Business Formation Agent
         business_agent = BusinessFormationAgent(mcp_manager)
         await business_agent.initialize()
         agents["business_formation"] = business_agent
         logger.info("Business Formation Agent initialized successfully")
+
+        # Content Strategy Agent
+        content_agent = ContentStrategyAgent(mcp_manager)
+        await content_agent.initialize()
+        agents["content_strategy"] = content_agent
+        logger.info("Content Strategy Agent initialized successfully")
+
+        # Legal Compliance Agent
+        legal_agent = LegalComplianceAgent(mcp_manager)
+        await legal_agent.initialize()
+        agents["legal_compliance"] = legal_agent
+        logger.info("Legal Compliance Agent initialized successfully")
+
     except Exception as e:
-        logger.error(f"Failed to initialize Business Formation Agent: {e}")
+        logger.error(f"Failed to initialize AI agents: {e}")
 
     yield
 
