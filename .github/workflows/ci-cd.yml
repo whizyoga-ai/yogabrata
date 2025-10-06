@@ -7,111 +7,125 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  # Ultra-minimal validation (guaranteed to pass)
-  minimal-validation:
+  checkout-and-cache:
     runs-on: ubuntu-latest
-
+    outputs:
+      frontend_changed: ${{ steps.check_frontend.outputs.changed }}
+      backend_changed: ${{ steps.check_backend.outputs.changed }}
+      infrastructure_changed: ${{ steps.check_infra.outputs.changed }}
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Ultra-minimal project check
-      run: |
-        echo "🚀 Yogabrata AI Platform - Minimal CI/CD Check"
-        echo "=============================================="
+      - name: Check frontend changes
+        id: check_frontend
+        run: |
+          echo "::set-output name=changed::false"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^frontend/' && echo "::set-output name=changed::true"
 
-        echo "✅ Checking repository structure..."
+      - name: Check backend changes
+        id: check_backend
+        run: |
+          echo "::set-output name=changed::false"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^backend/' && echo "::set-output name=changed::true"
 
-        # Check if we're in a git repository
-        if [ -d ".git" ]; then
-          echo "  ✓ Git repository detected"
-        else
-          echo "  ❌ Not a git repository"
-          exit 1
-        fi
+      - name: Check infrastructure changes
+        id: check_infra
+        run: |
+          echo "::set-output name=changed::false"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(infrastructure/|nginx.conf|docker-compose.yml)' && echo "::set-output name=changed::true"
 
-        # Check if README exists (most basic check)
-        if [ -f "README.md" ]; then
-          echo "  ✓ README.md exists"
-          readme_lines=$(wc -l < README.md)
-          echo "  ✓ README.md has $readme_lines lines"
-        else
-          echo "  ❌ README.md missing"
-          exit 1
-        fi
+      - name: Cache frontend node_modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: frontend-node-modules-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            frontend-node-modules-
 
-        # Check if backend directory exists
-        if [ -d "backend" ]; then
-          echo "  ✓ Backend directory exists"
-        else
-          echo "  ❌ Backend directory missing"
-          exit 1
-        fi
+      - name: Cache backend pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: backend-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            backend-pip-
 
-        # Check if frontend directory exists
-        if [ -d "frontend" ]; then
-          echo "  ✓ Frontend directory exists"
-        else
-          echo "  ❌ Frontend directory missing"
-          exit 1
-        fi
-
-        echo ""
-        echo "📊 Repository Statistics:"
-        echo "  - Total files: $(find . -type f | wc -l)"
-        echo "  - Total directories: $(find . -type d | wc -l)"
-        echo "  - Git commits: $(git rev-list --count HEAD)"
-
-        echo ""
-        echo "🏆 MINIMAL VALIDATION PASSED!"
-        echo "🎯 Repository is healthy and ready for development."
-
-    - name: Environment check
-      run: |
-        echo "🔧 Environment Information:"
-        echo "  - OS: $(uname -a)"
-        echo "  - Git version: $(git --version)"
-        echo "  - Working directory: $(pwd)"
-        echo "  - Repository: ${{ github.repository }}"
-        echo "  - Branch: ${{ github.ref }}"
-        echo "  - Event: ${{ github.event_name }}"
-
-        echo ""
-        echo "✅ Environment check completed successfully."
-
-  # Final summary (always passes)
-  pipeline-summary:
-    needs: [minimal-validation]
+  frontend-build:
+    needs: checkout-and-cache
+    if: needs.checkout-and-cache.outputs.frontend_changed == 'true'
     runs-on: ubuntu-latest
-    if: always()
-
     steps:
-    - name: Pipeline summary
-      run: |
-        echo "🏆 YOGABRATA AI PLATFORM - CI/CD PIPELINE COMPLETE"
-        echo "=================================================="
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        echo ""
-        echo "📋 Pipeline Summary:"
-        echo "- ✅ Minimal validation: PASSED"
-        echo "- ✅ Environment check: PASSED"
-        echo "- ✅ Repository structure: VALID"
-        echo "- ✅ All critical components: PRESENT"
+      - name: Build frontend Docker image
+        run: |
+          docker build -t yogabrata-frontend:latest -f frontend/Dockerfile frontend
 
-        echo ""
-        echo "🎯 Platform Status:"
-        echo "- 🤖 AI Agent Architecture: Ready"
-        echo "- 🔗 MCP Integration: Prepared"
-        echo "- 🎯 8 Business Services: Implemented"
-        echo "- 🏗️ Infrastructure: Configured"
-        echo "- 📚 Documentation: Complete"
+  backend-build:
+    needs: checkout-and-cache
+    if: needs.checkout-and-cache.outputs.backend_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        echo ""
-        echo "🚀 NEXT STEPS:"
-        echo "1. Generate package-lock.json locally: cd frontend && npm install"
-        echo "2. Test locally: python backend/main.py"
-        echo "3. Deploy: Use infrastructure/deploy-windows.bat"
-        echo "4. Monitor: Check https://github.com/whizyoga-ai/yogabrata/actions"
+      - name: Build backend Docker image
+        run: |
+          docker build -t yogabrata-backend:latest -f backend/Dockerfile backend
 
-        echo ""
-        echo "🎉 PIPELINE SUCCESSFUL! Platform is production-ready."
-        echo "🌟 Ready for AI-powered business services deployment!"
+  infrastructure-build:
+    needs: checkout-and-cache
+    if: needs.checkout-and-cache.outputs.infrastructure_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build infrastructure components
+        run: |
+          echo "Infrastructure build steps here"
+
+  frontend-deploy:
+    needs: frontend-build
+    if: needs.checkout-and-cache.outputs.frontend_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy frontend service
+        run: |
+          echo "Deploy frontend service here"
+
+  backend-deploy:
+    needs: backend-build
+    if: needs.checkout-and-cache.outputs.backend_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy backend service
+        run: |
+          echo "Deploy backend service here"
+
+  backup-micropipeline:
+    needs: [frontend-deploy, backend-deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backup database and data
+        run: |
+          echo "Backup steps here"
+
+  health-check-micropipeline:
+    needs: backup-micropipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run health checks
+        run: |
+          echo "Health check steps here"
+
+  infrastructure-deploy:
+    needs: infrastructure-build
+    if: needs.checkout-and-cache.outputs.infrastructure_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy infrastructure
+        run: |
+          echo "Deploy infrastructure here"

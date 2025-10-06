@@ -87,6 +87,7 @@ const services: Service[] = [
   }
 ]
 
+// Test change for CI/CD pipeline validation
 export default function Home() {
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [isLoading, setIsLoading] = useState(false)
