@@ -1,0 +1,25 @@
+# Next.js build output
+.next/
+out/
+
+# Cache
+.cache/
+.nyc_output/
+coverage/
+
+# Logs
+*.log
+
+# Dependency directories
+node_modules/
+
+# Environment files
+.env*
+!.env.example
+
+# OS and IDE artifacts
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/

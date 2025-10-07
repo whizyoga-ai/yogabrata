@@ -1,0 +1,128 @@
+# ========================================
+# Git Hygiene - Check Large Files Workflow
+# ========================================
+# This workflow runs on every push and pull request
+# to ensure no files larger than 100MB are committed.
+#
+# Features:
+# - Runs on push and pull request events
+# - Checks all files in the repository for size violations
+# - Fails the workflow if large files are detected
+# - Provides detailed reporting of violations
+# - Works alongside Git hooks for comprehensive protection
+# ========================================
+
+name: Check Large Files
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+
+# Allow manual trigger
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow read access
+permissions:
+  contents: read
+
+jobs:
+  check-large-files:
+    name: Check for Large Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for accurate size checking
+          fetch-depth: 0
+
+      - name: Set up Git LFS
+        run: |
+          # Install Git LFS if not already available
+          if ! command -v git-lfs &> /dev/null; then
+            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+            sudo apt-get install -y git-lfs
+          fi
+          git lfs install
+
+      - name: Check for large files
+        id: check-files
+        run: |
+          # Configuration
+          MAX_SIZE_MB="${GIT_HYGIENE_MAX_SIZE:-100}"
+          echo "🔍 Checking for files larger than ${MAX_SIZE_MB}MB..."
+
+          # Find all large files
+          LARGE_FILES=()
+          TOTAL_SIZE=0
+
+          # Get all files in the repository (excluding .git directory)
+          while IFS= read -r -d '' file; do
+            # Skip if file doesn't exist (broken symlinks, etc.)
+            [ -f "$file" ] || continue
+
+            # Get file size in MB
+            FILE_SIZE_MB=$(du -m "$file" 2>/dev/null | cut -f1 || echo "0")
+
+            # Check if file is too large
+            if [ "$FILE_SIZE_MB" -gt "$MAX_SIZE_MB" ]; then
+              LARGE_FILES+=("$file (${FILE_SIZE_MB}MB)")
+              TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE_MB))
+            fi
+          done < <(find . -type f -not -path "./.git/*" -print0)
+
+          # Report results
+          if [ ${#LARGE_FILES[@]} -eq 0 ]; then
+            echo "✅ All files are within size limits"
+            echo "files_ok=true" >> $GITHUB_OUTPUT
+          else
+            echo ""
+            echo "❌ Found ${#LARGE_FILES[@]} large file(s) exceeding ${MAX_SIZE_MB}MB limit:"
+            for large_file in "${LARGE_FILES[@]}"; do
+              echo "  🚫 $large_file"
+            done
+            echo ""
+            echo "📊 Total size of large files: ${TOTAL_SIZE}MB"
+            echo ""
+            echo "💡 To fix this:"
+            echo "  1. Remove large files from repository: git rm --cached <file>"
+            echo "  2. Use Git LFS for large files: git lfs track <file>"
+            echo "  3. Or increase the limit by setting GIT_HYGIENE_MAX_SIZE environment variable"
+            echo ""
+            echo "files_ok=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Report results
+        if: success()
+        run: |
+          echo "🎉 File size check completed successfully!"
+          echo "📏 Maximum allowed size: ${GIT_HYGIENE_MAX_SIZE:-100}MB"
+          echo "✅ All repository files are within acceptable size limits."
+
+      - name: Comment on PR (Pull Requests only)
+        if: github.event_name == 'pull_request' && success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ **File Size Check Passed**\n\nAll files in this pull request are within the acceptable size limit (${process.env.MAX_SIZE_MB || '100'}MB).\n\nThis PR maintains good Git hygiene practices! 🧹`
+            })
+
+      - name: Comment on PR (Pull Requests only) - Failures
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ **File Size Check Failed**\n\nThis pull request contains files that exceed the maximum allowed size (${process.env.MAX_SIZE_MB || '100'}MB).\n\n**Action Required:** Please review and fix the large files before merging.\n\n💡 **Solutions:**\n- Remove unnecessary large files\n- Use Git LFS for files you need to keep\n- Compress or optimize media files\n\nSee the workflow logs for details on which files are too large.`
+            })
