@@ -20,20 +20,29 @@ jobs:
       - name: Check frontend changes
         id: check_frontend
         run: |
-          echo "::set-output name=changed::false"
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^frontend/' && echo "::set-output name=changed::true"
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^frontend/' > /dev/null; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Check backend changes
         id: check_backend
         run: |
-          echo "::set-output name=changed::false"
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^backend/' && echo "::set-output name=changed::true"
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^backend/' > /dev/null; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Check infrastructure changes
         id: check_infra
         run: |
-          echo "::set-output name=changed::false"
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(infrastructure/|nginx.conf|docker-compose.yml)' && echo "::set-output name=changed::true"
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(infrastructure/|nginx.conf|docker-compose.yml)' > /dev/null; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Cache frontend node_modules
         uses: actions/cache@v3
