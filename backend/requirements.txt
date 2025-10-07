@@ -49,3 +49,4 @@ selenium==4.15.0
 # Logging & Monitoring
 structlog==23.2.0
 sentry-sdk[fastapi]==1.38.0
+# Pipeline trigger
