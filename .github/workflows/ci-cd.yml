@@ -1,11 +1,10 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-
+  workflow_dispatch:
 jobs:
   checkout-and-cache:
     runs-on: ubuntu-latest
@@ -16,7 +15,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Check frontend changes
         id: check_frontend
         run: |
@@ -25,7 +23,6 @@ jobs:
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Check backend changes
         id: check_backend
         run: |
@@ -34,7 +31,6 @@ jobs:
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Check infrastructure changes
         id: check_infra
         run: |
@@ -43,7 +39,6 @@ jobs:
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Cache backend pip packages
         uses: actions/cache@v3
         with:
@@ -51,19 +46,16 @@ jobs:
           key: backend-pip-${{ hashFiles('backend/requirements.txt') }}
           restore-keys: |
             backend-pip-
-
   frontend-build:
     needs: checkout-and-cache
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-
       - name: Cache frontend node_modules
         uses: actions/cache@v3
         with:
@@ -71,83 +63,67 @@ jobs:
           key: frontend-node-modules-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             frontend-node-modules-
-
       - name: Install frontend dependencies
         run: |
           cd frontend && npm ci
-
       - name: Build frontend
         run: |
           cd frontend && npm run build
-
       - name: Build frontend Docker image
         run: |
           docker build -t yogabrata-frontend:latest -f frontend/Dockerfile frontend
-
   backend-build:
     needs: checkout-and-cache
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
       - name: Install backend dependencies
         run: |
           cd backend && pip install -r requirements.txt
-
       - name: Run backend tests
         run: |
           cd backend && python -m pytest --version || echo "No tests configured"
-
       - name: Build backend Docker image
         run: |
           docker build -t yogabrata-backend:latest -f backend/Dockerfile backend
-
   infrastructure-build:
     needs: checkout-and-cache
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Validate Docker Compose
         run: |
           docker-compose -f infrastructure/docker-compose.yml config || echo "Docker Compose validation completed"
-
       - name: Build infrastructure components
         run: |
           echo "Building infrastructure components..."
           docker build -t yogabrata-nginx:latest -f infrastructure/Dockerfile infrastructure/ || echo "Infrastructure build completed"
-
   frontend-deploy:
     needs: frontend-build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Deploy frontend to production
         run: |
           echo "Deploying frontend to production..."
           echo "Frontend deployment completed successfully"
-
   backend-deploy:
     needs: backend-build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Deploy backend to production
         run: |
           echo "Deploying backend to production..."
           echo "Backend deployment completed successfully"
-
   backup-micropipeline:
     needs: [frontend-deploy, backend-deploy]
     runs-on: ubuntu-latest
@@ -155,7 +131,6 @@ jobs:
       - name: Backup database and data
         run: |
           echo "Backup steps here"
-
   health-check-micropipeline:
     needs: backup-micropipeline
     runs-on: ubuntu-latest
@@ -163,14 +138,12 @@ jobs:
       - name: Run health checks
         run: |
           echo "Health check steps here"
-
   infrastructure-deploy:
     needs: infrastructure-build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Deploy infrastructure to production
         run: |
           echo "Deploying infrastructure to production..."
