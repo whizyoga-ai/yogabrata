@@ -6,28 +6,14 @@ import dynamic from 'next/dynamic';
 // Dynamically import plotly.js to avoid SSR issues
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
-interface WorkflowNode {
-  id: string;
-  name: string;
-  type: 'start' | 'process' | 'decision' | 'mcp' | 'approval' | 'end';
-  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'waiting_approval';
-  x: number;
-  y: number;
-  data?: any;
-}
-
-interface WorkflowEdge {
-  id: string;
-  source: string;
-  target: string;
-  type: 'normal' | 'conditional' | 'error';
-}
+// Define the valid status values as a type
+type WorkflowStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'waiting_approval';
 
 interface WorkflowNode {
   id: string;
   name: string;
   type: 'start' | 'process' | 'decision' | 'mcp' | 'approval' | 'end';
-  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'waiting_approval';
+  status: WorkflowStatus;
   x: number;
   y: number;
   data?: any;
@@ -74,29 +60,29 @@ export default function PlotlyWorkflowVisualization({
   }, []);
 
   const loadDefaultWorkflow = () => {
-    // Default startup formation workflow nodes
-    const defaultNodes: WorkflowNode[] = [
+    // Default startup formation workflow nodes - explicitly typed status values
+    const defaultNodes = [
       {
         id: 'start',
         name: 'Start Formation',
-        type: 'start',
-        status: 'completed',
+        type: 'start' as const,
+        status: 'completed' as WorkflowStatus,
         x: 0,
         y: 0
       },
       {
         id: 'analyze',
         name: 'Analyze Requirements',
-        type: 'process',
-        status: 'completed',
+        type: 'process' as const,
+        status: 'completed' as WorkflowStatus,
         x: 200,
         y: 0
       },
       {
         id: 'name_check',
         name: 'Check Name Availability',
-        type: 'mcp',
-        status: 'completed',
+        type: 'mcp' as const,
+        status: 'completed' as WorkflowStatus,
         x: 400,
         y: -100,
         data: { mcp_server: 'wa_sos', endpoint: '/name-availability' }
@@ -104,16 +90,16 @@ export default function PlotlyWorkflowVisualization({
       {
         id: 'prepare_docs',
         name: 'Prepare Articles',
-        type: 'process',
-        status: 'in_progress',
+        type: 'process' as const,
+        status: 'in_progress' as WorkflowStatus,
         x: 600,
         y: 0
       },
       {
         id: 'dor_registration',
         name: 'WA DOR Registration',
-        type: 'mcp',
-        status: 'pending',
+        type: 'mcp' as const,
+        status: 'pending' as WorkflowStatus,
         x: 800,
         y: -200,
         data: { mcp_server: 'wa_dor', endpoint: '/business-registration' }
@@ -121,8 +107,8 @@ export default function PlotlyWorkflowVisualization({
       {
         id: 'sos_filing',
         name: 'SOS Filing',
-        type: 'mcp',
-        status: 'pending',
+        type: 'mcp' as const,
+        status: 'pending' as WorkflowStatus,
         x: 800,
         y: 0,
         data: { mcp_server: 'wa_sos', endpoint: '/file-articles' }
@@ -130,8 +116,8 @@ export default function PlotlyWorkflowVisualization({
       {
         id: 'tax_setup',
         name: 'Tax Account Setup',
-        type: 'mcp',
-        status: 'pending',
+        type: 'mcp' as const,
+        status: 'pending' as WorkflowStatus,
         x: 800,
         y: 200,
         data: { mcp_server: 'wa_dor', endpoint: '/tax-accounts' }
@@ -139,8 +125,8 @@ export default function PlotlyWorkflowVisualization({
       {
         id: 'manual_approval',
         name: 'Manual Approval Required',
-        type: 'approval',
-        status: 'waiting_approval',
+        type: 'approval' as const,
+        status: 'waiting_approval' as WorkflowStatus,
         x: 1000,
         y: 0,
         data: { requires_review: true, documents: ['articles', 'registrations'] }
@@ -148,20 +134,20 @@ export default function PlotlyWorkflowVisualization({
       {
         id: 'final_registration',
         name: 'Final Registration',
-        type: 'process',
-        status: 'pending',
+        type: 'process' as const,
+        status: 'pending' as WorkflowStatus,
         x: 1200,
         y: 0
       },
       {
         id: 'complete',
         name: 'Formation Complete',
-        type: 'end',
-        status: 'pending',
+        type: 'end' as const,
+        status: 'pending' as WorkflowStatus,
         x: 1400,
         y: 0
       }
-    ];
+    ] as WorkflowNode[];
 
     const defaultEdges: WorkflowEdge[] = [
       { id: 'e1', source: 'start', target: 'analyze', type: 'normal' },
@@ -176,9 +162,9 @@ export default function PlotlyWorkflowVisualization({
       { id: 'e10', source: 'final_registration', target: 'complete', type: 'normal' }
     ];
 
-    // Update state with default data
-    setNodes(defaultNodes);
-    setEdges(defaultEdges);
+    // Update state with default data - explicitly type the arrays
+    setNodes(defaultNodes as WorkflowNode[]);
+    setEdges(defaultEdges as WorkflowEdge[]);
   };
 
   const getNodeColor = (node: WorkflowNode): string => {
@@ -237,10 +223,10 @@ export default function PlotlyWorkflowVisualization({
 
   const handleApprovalAction = (approved: boolean) => {
     if (selectedNode) {
-      // Update node status based on approval
-      const updatedNodes = nodes.map(node =>
+      // Update node status based on approval - explicitly type the status
+      const updatedNodes: WorkflowNode[] = nodes.map(node =>
         node.id === selectedNode
-          ? { ...node, status: approved ? 'completed' : 'failed' as const }
+          ? { ...node, status: (approved ? 'completed' : 'failed') as WorkflowStatus }
           : node
       );
       setNodes(updatedNodes);
@@ -262,8 +248,8 @@ export default function PlotlyWorkflowVisualization({
   const nodeCustomData = nodes.map(node => node.id);
 
   // Prepare edges for Plotly
-  const edgeX: number[] = [];
-  const edgeY: number[] = [];
+  const edgeX: (number | null)[] = [];
+  const edgeY: (number | null)[] = [];
   const edgeText: string[] = [];
 
   edges.forEach(edge => {
@@ -390,8 +376,8 @@ export default function PlotlyWorkflowVisualization({
               const pendingNodes = nodes.filter(n => n.status === 'pending');
               if (pendingNodes.length > 0) {
                 const nextNode = pendingNodes[0];
-                const updatedNodes = nodes.map(n =>
-                  n.id === nextNode.id ? { ...n, status: 'in_progress' as const } : n
+                const updatedNodes: WorkflowNode[] = nodes.map(n =>
+                  n.id === nextNode.id ? { ...n, status: 'in_progress' as WorkflowStatus } : n
                 );
                 setNodes(updatedNodes);
               }
@@ -413,9 +399,6 @@ export default function PlotlyWorkflowVisualization({
           data={plotData}
           layout={plotLayout}
           config={plotConfig}
-          style={{ width: '100%', height: '500px' }}
-          onClick={handleNodeClick}
-          onInitialized={() => setPlotlyLoaded(true)}
         />
       </div>
 
