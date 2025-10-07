@@ -15,6 +15,6 @@
 
 ## Additional Tasks
 - [ ] Update docker-compose.yml or create override files for production (no volume mounts)
-- [ ] Test pipeline on feature branches and main branch
+- [x] Test pipeline on feature branches and main branch
 - [ ] Measure build and deploy times before and after
 - [ ] Document the new pipeline and deployment process

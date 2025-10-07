@@ -41,6 +41,10 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Debug: List contents to verify build output
+RUN ls -la /app/
+RUN ls -la /app/.next/standalone/ || echo "standalone directory not found"
+
 USER nextjs
 
 EXPOSE 3000

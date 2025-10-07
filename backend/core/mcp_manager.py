@@ -10,6 +10,7 @@ import logging
 from typing import Dict, Optional, Any, List
 from dataclasses import dataclass
 from contextlib import asynccontextmanager
+from .mcp_mock_servers import mock_mcp_manager
 
 try:
     from mcp import ClientSession, stdio_client
@@ -187,6 +188,52 @@ class MCPManager:
             rate_limit=15
         ))
 
+        # Mock MCP Servers for Startup Formation
+        self._initialize_mock_servers()
+
+    def _initialize_mock_servers(self):
+        """Initialize mock MCP servers for development and testing"""
+
+        # IRS EIN Mock Server
+        self.add_server(MCPServerConfig(
+            name="irs_ein",
+            server_type="api",
+            connection_url="http://127.0.0.1:8001/irs",
+            rate_limit=10
+        ))
+
+        # SAM.gov Mock Server
+        self.add_server(MCPServerConfig(
+            name="sam_gov",
+            server_type="api",
+            connection_url="http://127.0.0.1:8001/sam",
+            rate_limit=5
+        ))
+
+        # Payroll System Mocks
+        self.add_server(MCPServerConfig(
+            name="payroll_mocks",
+            server_type="api",
+            connection_url="http://127.0.0.1:8001/payroll",
+            rate_limit=15
+        ))
+
+        # Compliance System Mocks
+        self.add_server(MCPServerConfig(
+            name="compliance_mocks",
+            server_type="api",
+            connection_url="http://127.0.0.1:8001/legal",
+            rate_limit=20
+        ))
+
+        # State Tax Authority Mocks
+        self.add_server(MCPServerConfig(
+            name="state_tax_mocks",
+            server_type="api",
+            connection_url="http://127.0.0.1:8001/tax",
+            rate_limit=10
+        ))
+
     def add_server(self, config: MCPServerConfig):
         """Add a new MCP server connection"""
         self.connections[config.name] = MCPServerConnection(config)
@@ -203,7 +250,19 @@ class MCPManager:
         if server_name not in self.connections:
             return {"error": f"Server '{server_name}' not found"}
 
-        return await self.connections[server_name].query(query, params)
+        # Try real server first
+        result = await self.connections[server_name].query(query, params)
+
+        # If real server fails, try mock server as fallback
+        if "error" in result and server_name in mock_mcp_manager.get_available_servers():
+            logger.info(f"Real server {server_name} failed, trying mock server")
+            try:
+                return await mock_mcp_manager.query_server(server_name, query, params)
+            except Exception as e:
+                logger.error(f"Mock server {server_name} also failed: {e}")
+                return {"error": f"Both real and mock servers failed for {server_name}"}
+
+        return result
 
     async def query_multiple(self, server_names: List[str], query: str, params: Optional[Dict] = None) -> Dict[str, Any]:
         """Query multiple servers concurrently"""

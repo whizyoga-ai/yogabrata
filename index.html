@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yogabrata.com - AI-Powered Multi-Service Platform</title>
+    <title>Agentic World With Yoga - AI-Powered Multi-Service Platform</title>
     <style>
         * {
             margin: 0;
@@ -348,6 +348,137 @@
             }
         }
 
+        /* Workflow Visualization */
+        .workflow-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .workflow-title {
+            color: #333;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 2.5em;
+        }
+
+        .workflow-canvas {
+            position: relative;
+            height: 600px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 2px solid #dee2e6;
+            overflow: hidden;
+        }
+
+        .workflow-node {
+            position: absolute;
+            width: 140px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .workflow-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .workflow-node.active {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            animation: pulse 2s infinite;
+        }
+
+        .workflow-node.completed {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        }
+
+        .workflow-node.error {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .workflow-connection {
+            position: absolute;
+            height: 2px;
+            background: #667eea;
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        .workflow-connection.active {
+            background: #4CAF50;
+            animation: flow 2s ease-in-out infinite;
+        }
+
+        .workflow-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .legend-color.active {
+            background: #4CAF50;
+        }
+
+        .legend-color.pending {
+            background: #667eea;
+        }
+
+        .legend-color.completed {
+            background: #28a745;
+        }
+
+        .workflow-info {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+            50% { box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
+            100% { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+        }
+
+        @keyframes flow {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
         /* Animation */
         @keyframes fadeInUp {
             from {
@@ -399,7 +530,7 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>Yogabrata.com</h1>
+            <h1>Agentic World With Yoga</h1>
             <p class="subtitle">🤖 Autonomous AI Agents • 🔗 Real-Time Government Data • 🚀 8 Business Services</p>
             <div class="contact-info">
                 <a href="mailto:whizyoga1@gmail.com">📧 Contact Email</a>
@@ -411,6 +542,10 @@
         <section class="navigation">
             <h2>🚀 Quick Access Services</h2>
             <div class="nav-grid">
+                <a href="/startup-formation" class="nav-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h3>🚀 Startup Formation</h3>
+                    <p>Complete AI-powered startup formation workflow</p>
+                </a>
                 <a href="#services" class="nav-card">
                     <h3>Core Services</h3>
                     <p>Explore our 8 specialized AI-powered services</p>
@@ -422,10 +557,6 @@
                 <a href="#tech" class="nav-card">
                     <h3>Technology Stack</h3>
                     <p>Next.js, Python, AI, and modern tools</p>
-                </a>
-                <a href="#docs" class="nav-card">
-                    <h3>Documentation</h3>
-                    <p>API docs, setup guides, and resources</p>
                 </a>
             </div>
         </section>
@@ -616,14 +747,264 @@
             </div>
         </section>
 
+        <!-- Workflow Visualization -->
+        <section class="workflow-container" id="workflow">
+            <h2 class="workflow-title">🔄 AI Agentic Workflow Visualization</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: #666; font-size: 1.1em;">
+                Interactive visualization of the end-to-end startup formation process with autonomous AI agents
+            </p>
+
+            <div class="workflow-canvas" id="workflowCanvas">
+                <!-- Workflow nodes will be dynamically positioned -->
+                <div class="workflow-node" id="node1" style="left: 50px; top: 50px;" onclick="showNodeInfo('user_input')">
+                    <div>👤 User Input</div>
+                    <div>Startup Details</div>
+                </div>
+
+                <div class="workflow-node" id="node2" style="left: 250px; top: 50px;" onclick="showNodeInfo('founder_analysis')">
+                    <div>🧠 AI Analysis</div>
+                    <div>Founder Role Detection</div>
+                </div>
+
+                <div class="workflow-node" id="node3" style="left: 450px; top: 50px;" onclick="showNodeInfo('entity_registration')">
+                    <div>🏢 Entity Registration</div>
+                    <div>WA SOS Integration</div>
+                </div>
+
+                <div class="workflow-node" id="node4" style="left: 650px; top: 50px;" onclick="showNodeInfo('tax_setup')">
+                    <div>💰 Tax Setup</div>
+                    <div>WA DOR & IRS</div>
+                </div>
+
+                <div class="workflow-node" id="node5" style="left: 850px; top: 50px;" onclick="showNodeInfo('payroll_hr')">
+                    <div>👥 HR & Payroll</div>
+                    <div>ADP/Gusto Integration</div>
+                </div>
+
+                <div class="workflow-node" id="node6" style="left: 450px; top: 150px;" onclick="showNodeInfo('legal_compliance')">
+                    <div>⚖️ Legal Compliance</div>
+                    <div>Federal & State Law</div>
+                </div>
+
+                <div class="workflow-node" id="node7" style="left: 250px; top: 250px;" onclick="showNodeInfo('ip_protection')">
+                    <div>🛡️ IP Protection</div>
+                    <div>USPTO Integration</div>
+                </div>
+
+                <div class="workflow-node" id="node8" style="left: 650px; top: 250px;" onclick="showNodeInfo('funding_search')">
+                    <div>🎯 Funding Search</div>
+                    <div>Grants.gov API</div>
+                </div>
+
+                <div class="workflow-node" id="node9" style="left: 450px; top: 350px;" onclick="showNodeInfo('audit_reporting')">
+                    <div>📊 Audit & Reporting</div>
+                    <div>Compliance Monitoring</div>
+                </div>
+
+                <!-- Connection lines -->
+                <div class="workflow-connection" id="conn1" style="left: 190px; top: 90px; width: 60px; transform: rotate(0deg);"></div>
+                <div class="workflow-connection" id="conn2" style="left: 390px; top: 90px; width: 60px; transform: rotate(0deg);"></div>
+                <div class="workflow-connection" id="conn3" style="left: 590px; top: 90px; width: 60px; transform: rotate(0deg);"></div>
+                <div class="workflow-connection" id="conn4" style="left: 790px; top: 90px; width: 60px; transform: rotate(0deg);"></div>
+                <div class="workflow-connection" id="conn5" style="left: 500px; top: 130px; width: 100px; transform: rotate(90deg);"></div>
+                <div class="workflow-connection" id="conn6" style="left: 320px; top: 170px; width: 180px; transform: rotate(45deg);"></div>
+                <div class="workflow-connection" id="conn7" style="left: 580px; top: 170px; width: 180px; transform: rotate(-45deg);"></div>
+                <div class="workflow-connection" id="conn8" style="left: 500px; top: 270px; width: 100px; transform: rotate(90deg);"></div>
+            </div>
+
+            <!-- Workflow Legend -->
+            <div class="workflow-legend">
+                <div class="legend-item">
+                    <div class="legend-color pending"></div>
+                    <span>Pending</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color active"></div>
+                    <span>Active</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color completed"></div>
+                    <span>Completed</span>
+                </div>
+            </div>
+
+            <!-- Workflow Information Panel -->
+            <div class="workflow-info" id="workflowInfo">
+                <h4 id="infoTitle">🤖 AI Agentic Workflow</h4>
+                <p id="infoDescription">
+                    Click on any node above to see detailed information about that step in the startup formation process.
+                    Each node represents an autonomous AI agent working with real-time MCP server integrations.
+                </p>
+            </div>
+        </section>
+
         <!-- Call to Action -->
         <section class="cta-section">
             <h2>Ready to Get Started?</h2>
             <p>Experience the power of AI-driven business automation with real-time government and legal data integration</p>
-            <a href="https://github.com/whizyoga-ai/yogabrata" class="cta-button" target="_blank">
-                🚀 View on GitHub
-            </a>
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                <a href="/startup-formation" class="cta-button" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; border: none;">
+                    🚀 Try Interactive Workflow
+                </a>
+                <a href="https://github.com/whizyoga-ai/yogabrata" class="cta-button" target="_blank">
+                    📂 View Source Code
+                </a>
+            </div>
+            <p style="font-size: 0.9em; opacity: 0.8; margin-top: 20px;">
+                💡 <strong>New:</strong> Experience our <a href="/startup-formation" style="color: #4CAF50; text-decoration: none; font-weight: bold;">n8n.io-style visual workflow</a> for startup formation!
+            </p>
         </section>
     </div>
+
+    <script>
+        // Workflow visualization JavaScript
+        let currentActiveNode = null;
+        let workflowStep = 0;
+
+        const nodeInfo = {
+            'user_input': {
+                title: '👤 User Input Collection',
+                description: 'Collects comprehensive startup information including founder details, business type, location, and industry focus. This data drives all subsequent AI agent decisions and workflow routing.'
+            },
+            'founder_analysis': {
+                title: '🧠 AI Founder Role Analysis',
+                description: 'Analyzes founder backgrounds and expertise to determine optimal workflow paths. Routes to appropriate specialized agents based on founder roles (CEO, CFO, CTO, etc.).'
+            },
+            'entity_registration': {
+                title: '🏢 Business Entity Registration',
+                description: 'Automates business entity formation with Washington Secretary of State integration. Handles LLC, Corporation, and other entity types with real-time filing status tracking.'
+            },
+            'tax_setup': {
+                title: '💰 Tax Registration & Setup',
+                description: 'Coordinates with WA Department of Revenue and IRS for tax registration, EIN applications, and business tax account setup. Ensures compliance with state and federal requirements.'
+            },
+            'payroll_hr': {
+                title: '👥 HR & Payroll System Setup',
+                description: 'Integrates with ADP, Gusto, or other payroll providers to establish employee management systems, benefits administration, and automated payroll processing.'
+            },
+            'legal_compliance': {
+                title: '⚖️ Legal Compliance Monitoring',
+                description: 'Continuous monitoring of federal and state legal requirements, automatic compliance reporting, and proactive alerts for regulatory changes affecting the business.'
+            },
+            'ip_protection': {
+                title: '🛡️ Intellectual Property Protection',
+                description: 'USPTO integration for trademark and patent research, filing assistance, and IP portfolio management. Includes infringement monitoring and protection strategies.'
+            },
+            'funding_search': {
+                title: '🎯 Grant & Funding Discovery',
+                description: 'Automated grant matching using Grants.gov and SBA data, funding opportunity identification, and application preparation assistance with compliance guidance.'
+            },
+            'audit_reporting': {
+                title: '📊 Audit & Compliance Reporting',
+                description: 'Automated generation of audit reports, compliance documentation, and regulatory filings. Includes financial reporting, tax document preparation, and audit trail maintenance.'
+            }
+        };
+
+        function showNodeInfo(nodeId) {
+            const node = document.getElementById(`node${Object.keys(nodeInfo).indexOf(nodeId) + 1}`);
+            const info = nodeInfo[nodeId];
+
+            // Reset previous active node
+            if (currentActiveNode && currentActiveNode !== node) {
+                currentActiveNode.className = currentActiveNode.className.replace(' active', '');
+            }
+
+            // Set new active node
+            node.className = node.className + ' active';
+            currentActiveNode = node;
+
+            // Update info panel
+            document.getElementById('infoTitle').textContent = info.title;
+            document.getElementById('infoDescription').textContent = info.description;
+
+            // Activate connection lines
+            activateConnections();
+        }
+
+        function activateConnections() {
+            const connections = document.querySelectorAll('.workflow-connection');
+            connections.forEach((conn, index) => {
+                setTimeout(() => {
+                    conn.className = conn.className + ' active';
+                }, index * 200);
+            });
+        }
+
+        function simulateWorkflow() {
+            const nodes = Object.keys(nodeInfo);
+            let step = 0;
+
+            const interval = setInterval(() => {
+                if (step < nodes.length) {
+                    showNodeInfo(nodes[step]);
+
+                    // Mark node as completed after a delay
+                    setTimeout(() => {
+                        const nodeElement = document.getElementById(`node${step + 1}`);
+                        if (nodeElement) {
+                            nodeElement.className = nodeElement.className.replace(' active', '') + ' completed';
+                        }
+                    }, 2000);
+
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    // Reset to initial state after completion
+                    setTimeout(() => {
+                        resetWorkflow();
+                    }, 3000);
+                }
+            }, 3000);
+        }
+
+        function resetWorkflow() {
+            // Reset all nodes
+            document.querySelectorAll('.workflow-node').forEach(node => {
+                node.className = node.className
+                    .replace(' active', '')
+                    .replace(' completed', '')
+                    .replace(' error', '');
+            });
+
+            // Reset connections
+            document.querySelectorAll('.workflow-connection').forEach(conn => {
+                conn.className = conn.className.replace(' active', '');
+            });
+
+            // Reset info panel
+            document.getElementById('infoTitle').textContent = '🤖 AI Agentic Workflow';
+            document.getElementById('infoDescription').textContent =
+                'Click on any node above to see detailed information about that step in the startup formation process. Each node represents an autonomous AI agent working with real-time MCP server integrations.';
+        }
+
+        // Initialize workflow on page load
+        window.addEventListener('load', () => {
+            // Auto-start workflow simulation after 2 seconds
+            setTimeout(() => {
+                simulateWorkflow();
+            }, 2000);
+        });
+
+        // Add click handler to workflow canvas to reset
+        document.getElementById('workflowCanvas').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                resetWorkflow();
+            }
+        });
+
+        // Add smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

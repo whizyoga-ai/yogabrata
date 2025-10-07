@@ -214,7 +214,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* API Status */}
+        {/* Platform Status */}
         <div className="mt-12 text-center">
           <div className="inline-flex items-center space-x-4 bg-white dark:bg-gray-800 rounded-lg px-6 py-3 shadow-lg">
             <div className="flex items-center">

@@ -21,6 +21,7 @@ from agents.base_agent import BaseAgent, TaskContext, AgentResponse
 from agents.business_formation_agent import BusinessFormationAgent
 from agents.content_strategy_agent import ContentStrategyAgent
 from agents.legal_compliance_agent import LegalComplianceAgent
+from agents.startup_formation_orchestrator import StartupFormationOrchestrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,6 +52,12 @@ async def lifespan(app: FastAPI):
 
     # Initialize AI Agents
     try:
+        # Startup Formation Orchestrator (Primary Agent)
+        orchestrator = StartupFormationOrchestrator(mcp_manager)
+        await orchestrator.initialize()
+        agents["startup_orchestrator"] = orchestrator
+        logger.info("Startup Formation Orchestrator initialized successfully")
+
         # Business Formation Agent
         business_agent = BusinessFormationAgent(mcp_manager)
         await business_agent.initialize()
@@ -130,7 +137,15 @@ async def root():
             <h2>🎯 Available AI Services</h2>
 
             <div class="service-card">
-                <h3>🚀 Launch Start-up (WA State Focus)</h3>
+                <h3>🚀 Complete Startup Formation (NEW)</h3>
+                <p>End-to-end AI-powered startup formation with multi-founder support, workflow orchestration, and visual progress tracking.</p>
+                <strong>Agent:</strong> Startup Formation Orchestrator<br>
+                <strong>Features:</strong> Multi-state registration, EIN automation, payroll setup, compliance monitoring<br>
+                <strong>Status:</strong> <span style="color: #4CAF50;">✅ Active</span>
+            </div>
+
+            <div class="service-card">
+                <h3>🏢 Business Formation (WA State)</h3>
                 <p>Get AI-powered guidance for business formation, registration, and Washington State compliance.</p>
                 <strong>Agent:</strong> Business Formation Agent<br>
                 <strong>MCP Sources:</strong> WA DOR, WA SOS, Legal Compliance
@@ -165,6 +180,23 @@ async def root():
             </div>
             <div class="endpoint">
                 <strong>GET /api/v2/mcp/status</strong> - MCP server connection status
+            </div>
+
+            <h3>🚀 Startup Formation Endpoints</h3>
+            <div class="endpoint">
+                <strong>POST /api/v2/startup/create</strong> - Create new startup formation workflow
+            </div>
+            <div class="endpoint">
+                <strong>GET /api/v2/startup/workflows</strong> - List all active workflows
+            </div>
+            <div class="endpoint">
+                <strong>GET /api/v2/startup/workflows/{workflow_id}</strong> - Get workflow status
+            </div>
+            <div class="endpoint">
+                <strong>POST /api/v2/startup/workflows/{workflow_id}/visualization</strong> - Get workflow visualization
+            </div>
+            <div class="endpoint">
+                <strong>GET /api/v2/startup/templates</strong> - Get available workflow templates
             </div>
 
             <h2>🚀 Quick Start</h2>
@@ -299,6 +331,118 @@ async def execute_agent_task(
         logger.error(f"Task execution failed: {e}")
         raise HTTPException(status_code=500, detail=f"Task execution failed: {str(e)}")
 
+# Startup Formation Workflow Endpoints
+@app.post("/api/v2/startup/create")
+async def create_startup_workflow(request: Dict[str, Any]):
+    """Create a new startup formation workflow"""
+    if "startup_orchestrator" not in agents:
+        raise HTTPException(status_code=503, detail="Startup Formation Orchestrator not available")
+
+    task = request.get("task", "Create startup workflow")
+    user_id = request.get("user_id", "anonymous")
+
+    context = TaskContext(
+        user_id=user_id,
+        task_id=f"startup_{asyncio.get_event_loop().time()}",
+        priority=1,
+        metadata=request
+    )
+
+    orchestrator = agents["startup_orchestrator"]
+    response = await orchestrator.execute_task(task, context)
+
+    return {
+        "success": response.success,
+        "message": response.message,
+        "data": response.data,
+        "execution_time": response.execution_time,
+        "timestamp": response.timestamp.isoformat()
+    }
+
+@app.get("/api/v2/startup/workflows")
+async def list_startup_workflows():
+    """List all active startup formation workflows"""
+    if "startup_orchestrator" not in agents:
+        raise HTTPException(status_code=503, detail="Startup Formation Orchestrator not available")
+
+    orchestrator = agents["startup_orchestrator"]
+    workflows = orchestrator.list_active_workflows()
+
+    return {
+        "workflows": workflows,
+        "total_count": len(workflows),
+        "timestamp": asyncio.get_event_loop().time()
+    }
+
+@app.get("/api/v2/startup/workflows/{workflow_id}")
+async def get_workflow_status(workflow_id: str):
+    """Get status of a specific startup formation workflow"""
+    if "startup_orchestrator" not in agents:
+        raise HTTPException(status_code=503, detail="Startup Formation Orchestrator not available")
+
+    orchestrator = agents["startup_orchestrator"]
+    workflow_summary = orchestrator.get_workflow_summary(workflow_id)
+
+    if not workflow_summary:
+        raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found")
+
+    return {
+        "workflow": workflow_summary,
+        "timestamp": asyncio.get_event_loop().time()
+    }
+
+@app.post("/api/v2/startup/workflows/{workflow_id}/visualization")
+async def get_workflow_visualization(workflow_id: str):
+    """Get workflow visualization data"""
+    if "startup_orchestrator" not in agents:
+        raise HTTPException(status_code=503, detail="Startup Formation Orchestrator not available")
+
+    context = TaskContext(
+        user_id="visualization_request",
+        task_id=f"viz_{workflow_id}",
+        priority=1,
+        metadata={"workflow_id": workflow_id}
+    )
+
+    orchestrator = agents["startup_orchestrator"]
+    response = await orchestrator.execute_task("Get workflow visualization", context)
+
+    return {
+        "success": response.success,
+        "message": response.message,
+        "data": response.data,
+        "execution_time": response.execution_time,
+        "timestamp": response.timestamp.isoformat()
+    }
+
+@app.get("/api/v2/startup/templates")
+async def get_workflow_templates():
+    """Get available workflow templates"""
+    if "startup_orchestrator" not in agents:
+        raise HTTPException(status_code=503, detail="Startup Formation Orchestrator not available")
+
+    orchestrator = agents["startup_orchestrator"]
+
+    return {
+        "templates": {
+            "llc": {
+                "name": "Limited Liability Company (LLC)",
+                "description": "Complete LLC formation workflow for US businesses",
+                "estimated_duration": "3-5 business days",
+                "steps": len(orchestrator.workflow_templates.get("llc", [])),
+                "states_supported": ["Washington", "California", "Texas", "Florida", "New York"]
+            },
+            "corporation": {
+                "name": "Corporation (C-Corp/S-Corp)",
+                "description": "Complete corporation formation workflow",
+                "estimated_duration": "5-7 business days",
+                "steps": len(orchestrator.workflow_templates.get("corporation", [])),
+                "states_supported": ["Washington", "Delaware", "California", "Texas"]
+            }
+        },
+        "timestamp": asyncio.get_event_loop().time()
+    }
+
 # Legacy endpoints for backward compatibility
 @app.get("/api/v1/classes")
 async def get_classes():
@@ -330,7 +474,7 @@ async def get_instructors():
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=8000,
         reload=True,
         log_level="info"

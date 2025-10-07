@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import Navigation from './components/Navigation'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Yogabrata.com',
-  description: 'Your wellness journey starts here',
+  title: 'Yogabrata AI Platform',
+  description: 'Multi-Service AI Platform with MCP Integration for Intelligent Business Services',
 }
 
 export default function RootLayout({
@@ -16,7 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Navigation />
+        <main>{children}</main>
+      </body>
     </html>
   )
 }
