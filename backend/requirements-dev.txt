@@ -5,10 +5,28 @@ black==23.11.0
 isort==5.12.0
 flake8==6.1.0
 
-# Development versions of AI packages (for local development)
-# Uncomment these if you need the latest development versions
-# langchain
-# langchain-openai
-# llama-index
-# chromadb
-# sentence-transformers
+# Heavy AI & ML Frameworks (for local development only - not for CI/production)
+langchain>=0.1.0
+langchain-openai>=0.0.8
+llama-index>=0.9.0
+chromadb>=0.4.18
+sentence-transformers==2.2.2
+
+# Additional AI Tools (development only)
+openai==1.12.0
+anthropic==0.7.0
+replicate==0.20.0
+
+# Data Processing (development only)
+pandas==2.1.0
+numpy==1.25.0
+
+# Web Scraping (for MCP data sources - development only)
+beautifulsoup4>=4.12.2
+selenium==4.15.0
+
+# Monitoring (development only - full version with fastapi extras)
+sentry-sdk[fastapi]==1.38.0
+
+# MCP (temporarily commented out - causing CI issues)
+# mcp==1.16.0
