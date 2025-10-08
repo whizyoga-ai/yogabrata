@@ -82,7 +82,7 @@ class Workflow(Base):
     estimated_completion: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     # Metadata
-    metadata: Mapped[dict] = mapped_column(JSON, default=dict)
+    workflow_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class WorkflowStep(Base):
