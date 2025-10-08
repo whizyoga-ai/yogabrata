@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, CheckCircle, Clock, Play, Eye, Download, Settings, Zap } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Play, Eye, Download, Settings, Zap, Rocket, Users, FileText, Shield, TrendingUp, Calculator, Lightbulb, Award, ArrowRight, Sparkles, Target, Layers, Database, Globe, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import WorkflowVisualization from '@/components/workflow-visualization';
 import PlotlyWorkflowVisualization from '@/components/plotly-workflow-visualization';
@@ -166,17 +166,108 @@ export default function StartupFormationPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          🚀 Startup Formation Platform
-        </h1>
-        <p className="text-gray-600">
-          AI-powered end-to-end startup formation with multi-founder support and visual progress tracking
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Modern Header Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative container mx-auto px-6 py-16">
+          <div className="text-center text-white">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Sparkles className="w-4 h-4" />
+              AI-Powered Business Formation Platform
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+              Startup Formation
+              <span className="block text-4xl md:text-5xl mt-2">Orchestration Hub</span>
+            </h1>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+              🤖 Autonomous AI agents working in harmony to transform your vision into a legally compliant,
+              fully operational business entity with real-time government integrations
+            </p>
+          </div>
+        </div>
+
+        {/* Workflow Orchestration Diagram Background */}
+        <div className="absolute inset-0 opacity-10">
+          <svg viewBox="0 0 1200 400" className="w-full h-full">
+            {/* Startup Formation Workflow Visualization */}
+            <defs>
+              <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#8b5cf6" />
+              </linearGradient>
+              <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#3b82f6" />
+              </linearGradient>
+            </defs>
+
+            {/* Workflow Nodes */}
+            <g>
+              {/* User Input Node */}
+              <rect x="80" y="180" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="140" y="200" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">👤 User Input</text>
+              <text x="140" y="215" textAnchor="middle" fill="white" fontSize="8">Startup Details</text>
+
+              {/* AI Analysis Node */}
+              <rect x="280" y="180" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="340" y="200" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">🧠 AI Analysis</text>
+              <text x="340" y="215" textAnchor="middle" fill="white" fontSize="8">Founder Detection</text>
+
+              {/* Entity Registration Node */}
+              <rect x="480" y="180" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="540" y="200" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">🏢 Registration</text>
+              <text x="540" y="215" textAnchor="middle" fill="white" fontSize="8">WA SOS Integration</text>
+
+              {/* Tax Setup Node */}
+              <rect x="680" y="180" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="740" y="200" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">💰 Tax Setup</text>
+              <text x="740" y="215" textAnchor="middle" fill="white" fontSize="8">WA DOR & IRS</text>
+
+              {/* HR Setup Node */}
+              <rect x="880" y="180" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="940" y="200" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">👥 HR Setup</text>
+              <text x="940" y="215" textAnchor="middle" fill="white" fontSize="8">Payroll Integration</text>
+
+              {/* Legal Compliance Node */}
+              <rect x="480" y="280" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="540" y="300" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">⚖️ Legal</text>
+              <text x="540" y="315" textAnchor="middle" fill="white" fontSize="8">Compliance Monitor</text>
+
+              {/* IP Protection Node */}
+              <rect x="280" y="280" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="340" y="300" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">🛡️ IP Protection</text>
+              <text x="340" y="315" textAnchor="middle" fill="white" fontSize="8">USPTO Integration</text>
+
+              {/* Funding Node */}
+              <rect x="680" y="280" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="740" y="300" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">🎯 Funding</text>
+              <text x="740" y="315" textAnchor="middle" fill="white" fontSize="8">Grant Discovery</text>
+
+              {/* Audit Node */}
+              <rect x="480" y="80" width="120" height="60" rx="8" fill="url(#nodeGradient)" opacity="0.8" />
+              <text x="540" y="100" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">📊 Audit</text>
+              <text x="540" y="115" textAnchor="middle" fill="white" fontSize="8">Compliance Report</text>
+            </g>
+
+            {/* Connection Lines */}
+            <g stroke="url(#connectionGradient)" strokeWidth="2" fill="none">
+              <path d="M200 210 L280 210" strokeDasharray="5,5" opacity="0.6" />
+              <path d="M400 210 L480 210" strokeDasharray="5,5" opacity="0.6" />
+              <path d="M600 210 L680 210" strokeDasharray="5,5" opacity="0.6" />
+              <path d="M800 210 L880 210" strokeDasharray="5,5" opacity="0.6" />
+              <path d="M540 240 L540 280" strokeDasharray="5,5" opacity="0.6" />
+              <path d="M540 140 L540 100" strokeDasharray="5,5" opacity="0.6" />
+              <path d="M340 240 L340 280" strokeDasharray="5,5" opacity="0.6" />
+              <path d="M740 240 L740 280" strokeDasharray="5,5" opacity="0.6" />
+            </g>
+          </svg>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      {/* Main Content */}
+      <div className="container mx-auto p-6 max-w-7xl -mt-8 relative z-10">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="create">Create Workflow</TabsTrigger>
           <TabsTrigger value="monitor">Monitor Workflows</TabsTrigger>
@@ -736,6 +827,7 @@ export default function StartupFormationPage() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
