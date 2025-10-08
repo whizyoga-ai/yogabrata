@@ -103,7 +103,7 @@ export default function StartupFormationPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v2/startup/workflows', {
+      const response = await fetch('http://localhost:8000/api/v2/startup/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

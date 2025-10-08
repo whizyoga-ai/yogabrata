@@ -4,7 +4,8 @@ Configuration settings for Startup Formation Service
 
 import os
 from typing import List, Optional
-from pydantic import BaseSettings, validator
+from pydantic import BaseModel, validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -64,8 +65,8 @@ class Settings(BaseSettings):
 
     @validator("DATABASE_URL")
     def validate_database_url(cls, v):
-        if not v.startswith(("postgresql+asyncpg://", "sqlite+aiosqlite://")):
-            raise ValueError("DATABASE_URL must be a valid PostgreSQL or SQLite async URL")
+        if not (v.startswith(("postgresql://", "postgresql+asyncpg://", "sqlite://", "sqlite+aiosqlite://"))):
+            raise ValueError("DATABASE_URL must be a valid PostgreSQL or SQLite URL")
         return v
 
     @validator("SECRET_KEY")
