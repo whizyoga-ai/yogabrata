@@ -20,41 +20,20 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
 
-# Production image, copy all the files and run next
-FROM base AS runner
+# Production image for static export
+FROM nginx:alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# Copy built static files to nginx
+COPY --from=builder /app/out ./usr/share/nginx/html/
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Copy custom nginx configuration if needed
+# COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy the public folder
-COPY --from=builder /app/public ./public
+EXPOSE 80
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Copy the built application
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Debug: List contents to verify build output
-RUN ls -la /app/
-RUN ls -la /app/.next/standalone/ || echo "standalone directory not found"
-
-USER nextjs
-
-EXPOSE 3000
-
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-# Health check
+# Health check for static files
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
 
-# For Next.js standalone builds, server.js is in the root directory
-CMD ["node", "server.js"]
+CMD ["nginx", "-g", "daemon off;"]
