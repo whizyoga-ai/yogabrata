@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./api-gateway-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - STARTUP_FORMATION_SERVICE_URL=http://startup-formation:8001
+    depends_on:
+      - startup-formation
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Startup Formation Service
+  startup-formation:
+    build:
+      context: ./startup-formation-service/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://postgres:password@postgres-micro:5432/startup_formation
+      - REDIS_URL=redis://redis-micro:6379/0
+      - RABBITMQ_URL=amqp://rabbitmq:5672/
+      - PORT=8000
+    depends_on:
+      - postgres-micro
+      - redis-micro
+      - rabbitmq
+    volumes:
+      - ./startup-formation-service/backend:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database for Microservices
+  postgres-micro:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=microservices
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_micro_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and sessions
+  redis-micro:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_micro_data:/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # RabbitMQ for message queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_micro_data:
+  redis_micro_data:
+  rabbitmq_data:
+
+networks:
+  microservices-network:
+    driver: bridge

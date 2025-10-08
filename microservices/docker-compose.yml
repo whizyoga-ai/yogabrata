@@ -1,0 +1,255 @@
+version: '3.8'
+
+services:
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./api-gateway-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - STARTUP_FORMATION_SERVICE_URL=http://startup-formation:8001
+      - LEGAL_COMPLIANCE_SERVICE_URL=http://legal-compliance:8002
+      - CONTENT_STRATEGY_SERVICE_URL=http://content-strategy:8003
+      - BUSINESS_FORMATION_SERVICE_URL=http://business-formation:8004
+    depends_on:
+      - startup-formation
+      - legal-compliance
+      - content-strategy
+      - business-formation
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Startup Formation Service
+  startup-formation:
+    build:
+      context: ./startup-formation-service/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://postgres:password@postgres-micro:5432/startup_formation
+      - REDIS_URL=redis://redis-micro:6379/0
+      - RABBITMQ_URL=amqp://rabbitmq:5672/
+      - PORT=8000
+    depends_on:
+      - postgres-micro
+      - redis-micro
+      - rabbitmq
+    volumes:
+      - ./startup-formation-service/backend:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Legal Compliance Service
+  legal-compliance:
+    build:
+      context: ./legal-compliance-service/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://postgres:password@postgres-micro:5432/legal_compliance
+      - REDIS_URL=redis://redis-micro:6379/1
+      - RABBITMQ_URL=amqp://rabbitmq:5672/
+      - PORT=8000
+    depends_on:
+      - postgres-micro
+      - redis-micro
+      - rabbitmq
+    volumes:
+      - ./legal-compliance-service/backend:/app
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Content Strategy Service
+  content-strategy:
+    build:
+      context: ./content-strategy-service/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://postgres:password@postgres-micro:5432/content_strategy
+      - REDIS_URL=redis://redis-micro:6379/2
+      - RABBITMQ_URL=amqp://rabbitmq:5672/
+      - PORT=8000
+    depends_on:
+      - postgres-micro
+      - redis-micro
+      - rabbitmq
+    volumes:
+      - ./content-strategy-service/backend:/app
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Business Formation Service
+  business-formation:
+    build:
+      context: ./business-formation-service/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://postgres:password@postgres-micro:5432/business_formation
+      - REDIS_URL=redis://redis-micro:6379/3
+      - RABBITMQ_URL=amqp://rabbitmq:5672/
+      - PORT=8000
+    depends_on:
+      - postgres-micro
+      - redis-micro
+      - rabbitmq
+    volumes:
+      - ./business-formation-service/backend:/app
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database for Microservices
+  postgres-micro:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=microservices
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_micro_data:/var/lib/postgresql/data
+      - ./infrastructure/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and sessions
+  redis-micro:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_micro_data:/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # RabbitMQ for message queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # MongoDB for document storage (for Legal Compliance)
+  mongodb:
+    image: mongo:6
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Elasticsearch for search and analytics
+  elasticsearch:
+    image: elasticsearch:8.10.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9201:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Nginx Load Balancer for Microservices
+  nginx-micro:
+    image: nginx:alpine
+    ports:
+      - "81:80"
+      - "444:443"
+    volumes:
+      - ./infrastructure/nginx-microservices.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/ssl:/etc/ssl:ro
+    depends_on:
+      - api-gateway
+      - startup-formation
+      - legal-compliance
+      - content-strategy
+      - business-formation
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+volumes:
+  postgres_micro_data:
+  redis_micro_data:
+  rabbitmq_data:
+  mongodb_data:
+  elasticsearch_data:
+
+networks:
+  microservices-network:
+    driver: bridge
