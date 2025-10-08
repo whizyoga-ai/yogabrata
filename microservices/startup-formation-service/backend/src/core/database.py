@@ -115,7 +115,7 @@ class WorkflowStep(Base):
     step_order: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Metadata
-    metadata: Mapped[dict] = mapped_column(JSON, default=dict)
+    step_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
 class FounderProfile(Base):
