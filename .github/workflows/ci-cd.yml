@@ -1,10 +1,16 @@
-name: CI/CD Pipeline
+name: Deploy Main Backend Service
+
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - 'infrastructure/**'
+      - '.github/workflows/ci-cd.yml'
   workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/main-backend
 jobs:
   checkout-and-cache:
     runs-on: ubuntu-latest
