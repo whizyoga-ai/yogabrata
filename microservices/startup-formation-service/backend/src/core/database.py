@@ -142,7 +142,7 @@ class FounderProfile(Base):
     address_verified_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     # Metadata
-    metadata: Mapped[dict] = mapped_column(JSON, default=dict)
+    founder_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
