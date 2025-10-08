@@ -174,7 +174,7 @@ class CompanyEntity(Base):
     mailing_address: Mapped[dict] = mapped_column(JSON, nullable=True)
 
     # Metadata
-    metadata: Mapped[dict] = mapped_column(JSON, default=dict)
+    company_metadata: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
