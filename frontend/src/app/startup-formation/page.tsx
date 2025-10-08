@@ -46,28 +46,6 @@ interface WorkflowTemplate {
   states_supported: string[];
 }
 
-interface Document {
-  id: string;
-  name: string;
-  type: string;
-  status: 'generating' | 'ready' | 'approved' | 'rejected';
-  url?: string;
-  generated_at?: string;
-  approved_at?: string;
-}
-
-interface ApprovalRequest {
-  id: string;
-  workflow_id: string;
-  step_id: string;
-  documents: Document[];
-  requested_at: string;
-  status: 'pending' | 'approved' | 'rejected';
-  reviewed_by?: string;
-  reviewed_at?: string;
-  comments?: string;
-}
-
 export default function StartupFormationPage() {
   const [activeTab, setActiveTab] = useState('create');
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
@@ -75,11 +53,6 @@ export default function StartupFormationPage() {
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [workflowVisualization, setWorkflowVisualization] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isVisualizationLoading, setIsVisualizationLoading] = useState(false);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [approvalRequests, setApprovalRequests] = useState<ApprovalRequest[]>([]);
-  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-  const [selectedApprovalRequest, setSelectedApprovalRequest] = useState<ApprovalRequest | null>(null);
 
   // Form state for creating new workflow
   const [formData, setFormData] = useState({
@@ -130,92 +103,53 @@ export default function StartupFormationPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v2/startup/create', {
+      const response = await fetch('http://localhost:8000/api/v2/startup/workflows', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          task: `Create ${formData.entityType.toUpperCase()} for ${formData.companyName} in ${formData.state}`,
-          user_id: 'user_' + Date.now(),
-          company_info: {
-            name: formData.companyName,
-            entity_type: formData.entityType,
-            state: formData.state,
-            industry: formData.industry,
-            description: formData.description,
-            founders: [{
-              name: formData.founderName,
-              email: formData.founderEmail,
-              role: formData.founderRole,
-              ownership_percentage: 100,
-              responsibilities: ['all']
-            }]
-          }
+          company_name: formData.companyName,
+          entity_type: formData.entityType,
+          state: formData.state,
+          industry: formData.industry,
+          description: formData.description,
+          founder_name: formData.founderName,
+          founder_email: formData.founderEmail,
+          founder_role: formData.founderRole
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        alert(`Workflow created successfully! ID: ${data.data.workflow_id}`);
+        alert(`Workflow created successfully! Company: ${formData.companyName}`);
         loadWorkflows();
         setActiveTab('monitor');
+
+        // Reset form
+        setFormData({
+          companyName: '',
+          entityType: 'llc',
+          state: 'washington',
+          industry: 'technology',
+          description: '',
+          founderName: '',
+          founderEmail: '',
+          founderRole: 'ceo'
+        });
       } else {
-        alert('Failed to create workflow');
+        const errorData = await response.json().catch(() => ({}));
+        alert(`Failed to create workflow: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error creating workflow:', error);
-      alert('Error creating workflow');
+      alert('Error creating workflow. Please check if the backend server is running.');
     }
     setIsLoading(false);
   };
 
-  const loadWorkflowVisualization = async (workflowId: string) => {
-    setIsVisualizationLoading(true);
-    try {
-      const response = await fetch(`http://localhost:8000/api/v2/startup/workflows/${workflowId}/visualization`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.mermaid_diagram) {
-          setWorkflowVisualization(data.data.mermaid_diagram);
-        }
-      } else {
-        console.error('Failed to load workflow visualization');
-      }
-    } catch (error) {
-      console.error('Error loading workflow visualization:', error);
-    }
-    setIsVisualizationLoading(false);
-  };
-
   const handleWorkflowClick = (workflow: Workflow) => {
     setSelectedWorkflow(workflow);
-    loadWorkflowVisualization(workflow.workflow_id);
-  };
-
-  const handleApprovalRequired = (nodeId: string) => {
-    console.log('Approval required for node:', nodeId);
-    // Show approval dialog or notification
-    alert(`Manual approval required for step: ${nodeId}. Please review the generated documents before proceeding.`);
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'in_progress':
-        return <Clock className="w-4 h-4 text-blue-500" />;
-      case 'failed':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
-    }
   };
 
   const getStatusColor = (status: string) => {
@@ -490,10 +424,7 @@ export default function StartupFormationPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               {selectedWorkflow.company_name} - Workflow Details
-              <Button variant="outline" onClick={() => {
-                setSelectedWorkflow(null);
-                setWorkflowVisualization('');
-              }}>
+              <Button variant="outline" onClick={() => setSelectedWorkflow(null)}>
                 Close
               </Button>
             </CardTitle>
@@ -528,24 +459,10 @@ export default function StartupFormationPage() {
                 </TabsList>
 
                 <TabsContent value="mermaid" className="space-y-4">
-                  {isVisualizationLoading ? (
-                    <div className="p-8 text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                      <p className="mt-2 text-gray-600">Loading workflow visualization...</p>
-                    </div>
-                  ) : workflowVisualization ? (
-                    <WorkflowVisualization
-                      mermaidDiagram={workflowVisualization}
-                      workflowId={selectedWorkflow.workflow_id}
-                    />
-                  ) : (
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Click "View Details" on a workflow to see the visual progress diagram.
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                  <WorkflowVisualization
+                    mermaidDiagram={workflowVisualization}
+                    workflowId={selectedWorkflow.workflow_id}
+                  />
                 </TabsContent>
 
                 <TabsContent value="plotly" className="space-y-4">
@@ -556,8 +473,7 @@ export default function StartupFormationPage() {
                     }}
                     onApprovalRequired={(nodeId) => {
                       console.log('Approval required for node:', nodeId);
-                      // Handle approval workflow
-                      handleApprovalRequired(nodeId);
+                      alert(`Manual approval required for step: ${nodeId}`);
                     }}
                   />
                 </TabsContent>
