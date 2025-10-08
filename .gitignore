@@ -57,6 +57,7 @@ coverage.xml
 
 # Environment variables
 .env
+<<<<<<< HEAD
 .env*.local
 .env.development.local
 .env.test.local
@@ -224,3 +225,7 @@ tramp
 
 # Application specific
 # Add project-specific patterns below as needed
+=======
+*.pyc
+"node_modules/" 
+"/frontend/node_modules/" 
